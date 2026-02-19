@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมุดบันทึกความทรงจำของ ANAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Sriracha&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --sky-light: #e8f4fc;
+            --sky-medium: #b8dff5;
+            --sky-blue: #5ba3d0;
+            --sky-deep: #2d6a9f;
+            --paper: #fefcf3;
+            --paper-line: #e8e4d9;
+            --ink-blue: #1a4a6e;
+            --ink-dark: #0d2d42;
+            --accent-coral: #e8a87c;
+            --aurora-teal: #14b8a6;
+            --aurora-blue: #38bdf8;
+            --aurora-cyan: #22d3ee;
+            --correct-green: #10b981;
+            --wrong-red: #ef4444;
+        }
+
+        * { font-family: 'Kanit', sans-serif; }
+        .font-handwrite { font-family: 'Sriracha', cursive; }
+        body { min-height: 100vh; }
+
+        .night-sky {
+            background: linear-gradient(180deg, #050d1a 0%, #0a1628 20%, #122035 40%, #1a2d4a 60%, #0f1f35 80%, #050d1a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .aurora-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 70%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .aurora-wave {
+            position: absolute;
+            width: 100%; height: 60%;
+            border-radius: 50% 50% 0 0;
+            filter: blur(60px);
+            opacity: 0.6;
+        }
+
+        .aurora-wave-1 {
+            background: linear-gradient(180deg, rgba(45, 212, 191, 0.4) 0%, rgba(56, 189, 248, 0.3) 30%, rgba(20, 184, 166, 0.2) 60%, transparent 100%);
+            top: 5%; left: -10%;
+            width: 120%; height: 50%;
+            animation: auroraFlow1 25s ease-in-out infinite;
+            transform-origin: center top;
+        }
+
+        .aurora-wave-2 {
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.35) 0%, rgba(45, 212, 191, 0.25) 40%, transparent 100%);
+            top: 8%; left: 10%;
+            width: 100%; height: 45%;
+            animation: auroraFlow2 30s ease-in-out infinite;
+            animation-delay: -5s;
+        }
+
+        .aurora-wave-3 {
+            background: linear-gradient(180deg, rgba(20, 184, 166, 0.3) 0%, transparent 100%);
+            top: 3%; left: 30%;
+            width: 80%; height: 40%;
+            animation: auroraFlow3 35s ease-in-out infinite;
+            animation-delay: -10s;
+        }
+
+        .aurora-curtain {
+            position: absolute;
+            width: 4px; height: 45%;
+            top: 5%;
+            background: linear-gradient(180deg, rgba(45, 212, 191, 0.6) 0%, transparent 100%);
+            filter: blur(8px);
+            animation: curtainSway 8s ease-in-out infinite;
+        }
+
+        @keyframes auroraFlow1 {
+            0%, 100% { transform: translateX(0) scaleY(1) skewX(0deg); opacity: 0.5; }
+            50% { transform: translateX(5%) scaleY(1.1) skewX(3deg); opacity: 0.7; }
+        }
+
+        @keyframes auroraFlow2 {
+            0%, 100% { transform: translateX(0) scaleY(1); opacity: 0.6; }
+            50% { transform: translateX(-5%) scaleY(1.1); opacity: 0.4; }
+        }
+
+        @keyframes auroraFlow3 {
+            0%, 100% { transform: translateX(0) scaleY(1); opacity: 0.5; }
+            50% { transform: translateX(-5%) scaleY(1.2); opacity: 0.7; }
+        }
+
+        @keyframes curtainSway {
+            0%, 100% { transform: skewX(0deg) scaleY(1); opacity: 0.4; }
+            50% { transform: skewX(8deg) scaleY(1.1); opacity: 0.7; }
+        }
+
+        .stars-container {
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+
+        .star { position: absolute; background: white; border-radius: 50%; }
+        .star-tiny { width: 1px; height: 1px; opacity: 0.6; }
+        .star-small { width: 2px; height: 2px; opacity: 0.8; animation: twinkle 3s ease-in-out infinite; }
+        .star-medium { width: 3px; height: 3px; opacity: 0.9; box-shadow: 0 0 6px 1px rgba(255,255,255,0.5); animation: twinkle 2s ease-in-out infinite; }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 100px; height: 1px;
+            background: linear-gradient(90deg, white, transparent);
+            opacity: 0;
+            animation: shoot 6s ease-in-out infinite;
+        }
+
+        @keyframes shoot {
+            0% { opacity: 0; transform: translateX(0) translateY(0); }
+            2% { opacity: 1; }
+            10% { opacity: 0; transform: translateX(300px) translateY(150px); }
+            100% { opacity: 0; }
+        }
+
+        .paper-bg {
+            background: var(--paper);
+            background-image: repeating-linear-gradient(transparent, transparent 31px, var(--paper-line) 31px, var(--paper-line) 32px);
+            box-shadow: 0 2px 8px rgba(45,106,159,0.15), 0 8px 32px rgba(45,106,159,0.1);
+        }
+
+        .notebook-border {
+            border-left: 4px solid var(--accent-coral);
+            position: relative;
+        }
+
+        .notebook-border::before {
+            content: '';
+            position: absolute;
+            left: 12px; top: 0; bottom: 0;
+            width: 2px;
+            background: var(--sky-medium);
+        }
+
+        .spiral-binding { position: relative; }
+
+        .spiral-binding::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 40px;
+            background: repeating-linear-gradient(180deg, transparent 0px, transparent 18px, var(--sky-deep) 18px, var(--sky-deep) 22px, transparent 22px, transparent 40px);
+            opacity: 0.3;
+            border-radius: 20px 0 0 20px;
+        }
+
+        .cloud-container {
+            position: absolute;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.85;
+            filter: blur(1px);
+        }
+
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .cloud-1 { width: 200px; height: 60px; top: 8%; animation: floatCloud1 60s linear infinite; }
+        .cloud-1::before { width: 80px; height: 80px; top: -40px; left: 30px; }
+        .cloud-1::after { width: 100px; height: 100px; top: -50px; left: 80px; }
+
+        .cloud-2 { width: 160px; height: 50px; top: 20%; animation: floatCloud2 75s linear infinite; animation-delay: -20s; }
+        .cloud-2::before { width: 60px; height: 60px; top: -30px; left: 20px; }
+        .cloud-2::after { width: 80px; height: 80px; top: -45px; left: 60px; }
+
+        .cloud-3 { width: 120px; height: 35px; top: 35%; opacity: 0.6; animation: floatCloud3 90s linear infinite; animation-delay: -40s; }
+        .cloud-3::before { width: 45px; height: 45px; top: -22px; left: 15px; }
+        .cloud-3::after { width: 55px; height: 55px; top: -30px; left: 45px; }
+
+        @keyframes floatCloud1 {
+            0% { left: -250px; transform: translateY(0); }
+            50% { transform: translateY(10px); }
+            100% { left: 110%; transform: translateY(0); }
+        }
+
+        @keyframes floatCloud2 {
+            0% { left: -220px; transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { left: 110%; transform: translateY(0); }
+        }
+
+        @keyframes floatCloud3 {
+            0% { left: -180px; transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+            100% { left: 110%; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+        .animate-scaleIn { animation: scaleIn 0.4s ease-out forwards; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sky-blue) 0%, var(--sky-deep) 100%);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 25px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(45,106,159,0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(45,106,159,0.4); }
+
+        .btn-aurora {
+            background: linear-gradient(135deg, var(--aurora-teal) 0%, var(--aurora-blue) 50%, var(--aurora-cyan) 100%);
+            background-size: 200% 200%;
+            color: white;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(45,212,191,0.4);
+            transition: all 0.4s ease;
+            animation: auroraGlow 4s ease-in-out infinite;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-aurora:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px rgba(45,212,191,0.5); }
+
+        @keyframes auroraGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn-secondary {
+            background: var(--paper);
+            color: var(--ink-blue);
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: 2px solid var(--sky-medium);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover { background: var(--sky-light); border-color: var(--sky-blue); }
+
+        .btn-ghost {
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef5350, #c62828);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(198,40,40,0.3); }
+
+        .choice-btn {
+            background: var(--paper);
+            border: 2px solid var(--sky-medium);
+            padding: 16px 24px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .choice-btn:hover { border-color: var(--sky-blue); background: var(--sky-light); transform: scale(1.02); }
+        .choice-btn.selected { border-color: var(--sky-deep); background: var(--sky-medium); }
+
+        .entry-card {
+            background: var(--paper);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(45,106,159,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .entry-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(45,106,159,0.15); }
+        .entry-card.own-entry { border: 2px solid var(--sky-medium); }
+
+        .page { display: none; min-height: 100vh; }
+        .page.active { display: block; }
+
+        .daytime-bg { background: linear-gradient(180deg, var(--sky-light) 0%, var(--sky-medium) 50%, var(--sky-blue) 100%); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(13,45,66,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active { display: flex; }
+
+        .score-popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--paper);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(45,106,159,0.3);
+            z-index: 200;
+            display: none;
+            text-align: center;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .score-popup.active { display: block; animation: scaleIn 0.3s ease-out; }
+
+        textarea, input[type="text"] {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Sriracha', cursive;
+            font-size: 18px;
+            line-height: 32px;
+            resize: none;
+        }
+
+        .profile-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sky-medium) 0%, var(--sky-blue) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(45,106,159,0.2);
+        }
+
+        .delete-entry-btn { opacity: 0; transition: opacity 0.3s ease; }
+        .entry-card:hover .delete-entry-btn { opacity: 1; }
+
+        .login-page-bg {
+            background: linear-gradient(135deg, #0a1628 0%, #122035 50%, #0f1f35 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card {
+            background: rgba(254,252,243,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(45,212,191,0.2);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--aurora-teal), var(--aurora-blue), var(--aurora-cyan));
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0.3;
+            filter: blur(10px);
+        }
+
+        .input-aurora {
+            background: rgba(232,244,252,0.8);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-aurora:focus-within { border-color: var(--aurora-teal); box-shadow: 0 0 20px rgba(45,212,191,0.2); background: white; }
+
+        .welcome-back-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+        }
+
+        .avatar-large {
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--aurora-teal), var(--aurora-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: white;
+            border: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 40px rgba(45,212,191,0.5);
+        }
+
+        .answer-item { padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; text-align: left; }
+        .answer-correct { background: #d1fae5; border: 2px solid var(--correct-green); }
+        .answer-wrong { background: #fee2e2; border: 2px solid var(--wrong-red); }
+
+        .correct-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-correct { background: var(--correct-green); color: white; }
+        .badge-wrong { background: var(--wrong-red); color: white; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ink-dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.show { opacity: 1; }
+        .toast.success { background: var(--correct-green); }
+        .toast.error { background: var(--wrong-red); }
+
+        /* Demo Mode Banner */
+        .demo-banner {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            color: #78350f;
+            padding: 8px 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Demo Mode Banner -->
+    <div id="demo-banner" class="demo-banner hidden">
+        โหมดทดสอบ: ข้อมูลเก็บในเครื่องเท่านั้น จะไม่แชร์ให้คนอื่น 
+        <a href="#" onclick="alert('ใส่ Firebase Config ในโค้ดเพื่อเปิดใช้งานแชร์ข้อมูล')" style="text-decoration: underline; margin-left: 8px;">เรียนรู้เพิ่มเติม</a>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Page 0: Welcome Page -->
+    <div id="page-welcome" class="page active night-sky">
+        <div class="aurora-container">
+            <div class="aurora-wave aurora-wave-1"></div>
+            <div class="aurora-wave aurora-wave-2"></div>
+            <div class="aurora-wave aurora-wave-3"></div>
+            <div class="aurora-curtain" style="left: 15%;"></div>
+            <div class="aurora-curtain" style="left: 35%; animation-delay: -3s;"></div>
+            <div class="aurora-curtain" style="left: 55%; animation-delay: -5s;"></div>
+            <div class="aurora-curtain" style="left: 75%; animation-delay: -2s;"></div>
+        </div>
+
+        <div class="stars-container" id="stars-container"></div>
+        <div class="shooting-star" style="top: 20%; left: 10%;"></div>
+        <div class="shooting-star" style="top: 35%; left: 60%; animation-delay: -3s;"></div>
+
+        <div class="min-h-screen flex flex-col items-center justify-center px-4 relative z-10">
+            
+            <div id="welcome-default" class="text-center animate-fadeInUp">
+                <h1 class="font-handwrite text-5xl md:text-7xl mb-4 text-white" style="text-shadow: 0 0 40px rgba(45,212,191,0.5);">
+                    สมุดบันทึกความทรงจำ
+                </h1>
+                <h2 class="font-handwrite text-3xl md:text-5xl mb-2" style="color: var(--aurora-cyan); text-shadow: 0 0 30px rgba(34,211,238,0.6);">
+                    ของ ANAS
+                </h2>
+                <p class="text-lg mt-6 mb-12 text-white/70">
+                    เก็บบันทึกความทรงจำดีๆ จากเพื่อนๆ
+                </p>
+                
+                <button onclick="showPage('page-login')" class="btn-aurora text-xl font-handwrite">
+                    Enter
+                </button>
+            </div>
+
+            <div id="welcome-back" class="hidden text-center animate-fadeInUp">
+                <div class="welcome-back-card rounded-3xl p-8 md:p-12 max-w-md mx-auto">
+                    <div class="avatar-large mx-auto mb-6" id="welcome-avatar">?</div>
+                    <h2 class="font-handwrite text-3xl md:text-4xl mb-2 text-white">สวัสดีอีกครั้ง</h2>
+                    <p class="font-handwrite text-2xl mb-6" style="color: var(--aurora-cyan);" id="welcome-back-name">ชื่อผู้ใช้</p>
+                    <p class="text-white/60 mb-8">พร้อมเขียนบันทึกต่อหรือยัง?</p>
+                    
+                    <button onclick="goToMainDirect()" class="btn-aurora w-full text-lg mb-3">เข้าสู่สมุดบันทึก</button>
+                    <button onclick="logout()" class="btn-ghost w-full">ออกจากระบบ</button>
+                </div>
+            </div>
+
+            <div class="absolute top-10 right-10 md:top-20 md:right-20">
+                <div class="w-16 h-16 md:w-24 md:h-24 rounded-full" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); box-shadow: 0 0 60px 20px rgba(253,230,138,0.3);"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 1: Login Page -->
+    <div id="page-login" class="page login-page-bg">
+        <div class="aurora-container" style="height: 50%; opacity: 0.5;">
+            <div class="aurora-wave aurora-wave-1"></div>
+            <div class="aurora-wave aurora-wave-2"></div>
+        </div>
+        <div class="stars-container" id="stars-container-login"></div>
+
+        <div class="min-h-screen flex items-center justify-center px-4 py-8 relative z-10">
+            <div class="login-card notebook-border spiral-binding rounded-3xl p-8 md:p-12 w-full max-w-md animate-scaleIn">
+                <div class="pl-8">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, var(--aurora-teal), var(--aurora-blue)); box-shadow: 0 0 30px rgba(45,212,191,0.4);">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="font-handwrite text-3xl md:text-4xl mb-2" style="color: var(--ink-dark);">สมุดบันทึกความทรงจำ</h2>
+                        <p class="font-handwrite text-xl" style="color: var(--sky-deep);">ยินดีต้อนรับ</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block mb-3 font-medium text-center" style="color: var(--ink-blue);">ใครเป็นคนเขียน?</label>
+                        <div class="input-aurora p-4">
+                            <input type="text" id="writer-name" placeholder="พิมพ์ชื่อของคุณที่นี่..." class="w-full bg-transparent outline-none" style="color: var(--ink-dark);">
+                        </div>
+                    </div>
+
+                    <button onclick="processLogin()" class="btn-aurora w-full text-lg mb-4">เข้าสู่สมุดบันทึก</button>
+                    <button onclick="showPage('page-welcome')" class="btn-secondary w-full">ย้อนกลับ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Quiz Ready Page -->
+    <div id="page-quiz-ready" class="page daytime-bg">
+        <div class="cloud-container">
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+            <div class="cloud cloud-3"></div>
+        </div>
+        <div class="min-h-screen flex items-center justify-center px-4 py-8 relative z-10">
+            <div class="paper-bg notebook-border spiral-binding rounded-3xl p-8 md:p-12 w-full max-w-lg animate-scaleIn">
+                <div class="pl-8 text-center">
+                    <div class="profile-avatar mx-auto mb-4" id="ready-avatar">?</div>
+                    <h2 class="font-handwrite text-2xl md:text-3xl mb-2" style="color: var(--ink-dark);">
+                        สวัสดี, <span id="ready-name">เพื่อน</span>!
+                    </h2>
+                    <p class="mb-6" style="color: var(--ink-blue);">
+                        พร้อมสำหรับทำแบบทดสอบ<br>
+                        <span class="font-handwrite text-xl" style="color: var(--sky-deep);">This or That</span> หรือยัง?
+                    </p>
+                    <p class="text-sm mb-8" style="color: var(--ink-blue); opacity: 0.7;">มาดูกันว่าคุณรู้จัก ANAS แค่ไหน!</p>
+
+                    <button onclick="showPage('page-quiz')" class="btn-primary w-full text-lg mb-3">พร้อมแล้ว!</button>
+                    <button onclick="skipQuiz()" class="btn-secondary w-full">ข้ามไปก่อน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 3: Quiz Page -->
+    <div id="page-quiz" class="page daytime-bg">
+        <div class="cloud-container">
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+        </div>
+        <div class="min-h-screen flex items-center justify-center px-4 py-8 relative z-10">
+            <div class="paper-bg notebook-border spiral-binding rounded-3xl p-6 md:p-10 w-full max-w-2xl animate-scaleIn">
+                <div class="pl-8">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-handwrite text-lg" style="color: var(--ink-blue);">This or That</span>
+                            <span class="text-sm" style="color: var(--sky-deep);" id="quiz-progress">ข้อ 1/10</span>
+                        </div>
+                        <div class="h-2 rounded-full" style="background: var(--sky-light);">
+                            <div id="progress-bar" class="h-2 rounded-full transition-all duration-300" style="background: var(--sky-deep); width: 10%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="quiz-container">
+                        <h3 class="font-handwrite text-2xl md:text-3xl mb-6 text-center" style="color: var(--ink-dark);" id="question-text">ทะเล หรือ ภูเขา?</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="choices-container"></div>
+                    </div>
+
+                    <div class="flex justify-between mt-8">
+                        <button onclick="prevQuestion()" id="btn-prev" class="btn-secondary" style="visibility: hidden;">ก่อนหน้า</button>
+                        <button onclick="nextQuestion()" id="btn-next" class="btn-primary" style="display: none;">ข้อถัดไป</button>
+                        <button onclick="finishQuiz()" id="btn-finish" class="btn-primary" style="display: none;">เสร็จสิ้น</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 4: Main Page -->
+    <div id="page-main" class="page daytime-bg">
+        <header class="sticky top-0 z-50 backdrop-blur-md" style="background: rgba(232,244,252,0.9);">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showModal('modal-profile')">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold" style="background: linear-gradient(135deg, var(--sky-medium), var(--sky-deep));" id="header-avatar">?</div>
+                    <span class="font-handwrite text-lg" style="color: var(--ink-dark);" id="header-name">ผู้เขียน</span>
+                </div>
+                <h1 class="font-handwrite text-xl md:text-2xl" style="color: var(--ink-dark);">สมุดบันทึก</h1>
+                <button onclick="logout()" class="p-2 rounded-full hover:bg-red-50 transition-colors group" title="ออกจากระบบ">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2" class="opacity-50 group-hover:opacity-100 transition-opacity">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-6">
+            <div class="paper-bg rounded-2xl p-6 mb-6">
+                <h2 class="font-handwrite text-2xl mb-2" style="color: var(--ink-dark);">บันทึกของเพื่อนๆ</h2>
+                <p class="text-sm" style="color: var(--ink-blue); opacity: 0.7;">
+                    ทุกคนเห็นรายชื่อผู้เขียน เจ้าของข้อความสามารถกดเข้าไปอ่านและแก้ไขได้
+                </p>
+            </div>
+
+            <button onclick="showModal('modal-write')" class="entry-card w-full p-6 mb-6 flex items-center justify-center gap-3 border-2 border-dashed" style="border-color: var(--sky-medium);">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: var(--sky-light);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--sky-deep)" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </div>
+                <span class="font-handwrite text-xl" style="color: var(--sky-deep);">เขียนข้อความใหม่</span>
+            </button>
+
+            <div id="entries-list" class="space-y-4"></div>
+        </main>
+    </div>
+
+    <!-- Modal: Write Entry -->
+    <div id="modal-write" class="modal">
+        <div class="paper-bg notebook-border spiral-binding rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn">
+            <div class="pl-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-handwrite text-2xl" style="color: var(--ink-dark);">เขียนข้อความ</h3>
+                    <button onclick="hideModal('modal-write')" class="p-2 rounded-full hover:bg-gray-100">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink-blue)" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4 p-4 rounded-xl" style="background: var(--sky-light);">
+                    <label class="block mb-2 text-sm font-medium" style="color: var(--ink-blue);">ข้อความของคุณ</label>
+                    <textarea id="entry-content" rows="6" placeholder="เขียนความในใจที่นี่..." class="w-full p-3 rounded-lg" style="background: var(--paper); color: var(--ink-dark);"></textarea>
+                </div>
+
+                <div class="mb-6 p-4 rounded-xl" style="background: var(--sky-light);">
+                    <label class="block mb-2 text-sm font-medium" style="color: var(--ink-blue);">แนบรูปภาพ (ถ้าต้องการ)</label>
+                    <input type="file" id="entry-image" accept="image/*" class="w-full text-sm" style="color: var(--ink-blue);">
+                    <div id="image-preview" class="mt-3 hidden">
+                        <img id="preview-img" class="max-w-full h-auto rounded-lg max-h-48 object-cover" alt="Preview">
+                        <button onclick="clearImage()" class="text-sm mt-2" style="color: var(--accent-coral);">ลบรูปภาพ</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="hideModal('modal-write')" class="btn-secondary flex-1">ยกเลิก</button>
+                    <button onclick="saveEntry()" class="btn-primary flex-1">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: View Entry -->
+    <div id="modal-view" class="modal">
+        <div class="paper-bg notebook-border spiral-binding rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn">
+            <div class="pl-8">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background: linear-gradient(135deg, var(--sky-medium), var(--sky-deep));" id="view-avatar">?</div>
+                        <span class="font-handwrite text-xl" style="color: var(--ink-dark);" id="view-name">ผู้เขียน</span>
+                    </div>
+                    <button onclick="hideModal('modal-view')" class="p-2 rounded-full hover:bg-gray-100">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink-blue)" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <p class="font-handwrite text-lg leading-relaxed" style="color: var(--ink-dark);" id="view-content">ข้อความ...</p>
+                </div>
+
+                <div id="view-image-container" class="mb-4 hidden">
+                    <img id="view-image" class="max-w-full h-auto rounded-lg" alt="รูปภาพ">
+                </div>
+
+                <p class="text-sm" style="color: var(--ink-blue); opacity: 0.6;" id="view-date">วันที่:</p>
+
+                <div id="view-actions" class="flex gap-3 mt-6">
+                    <button onclick="editEntry()" class="btn-secondary flex-1">แก้ไข</button>
+                    <button onclick="confirmDeleteEntry()" class="btn-danger flex-1">ลบข้อความ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Delete -->
+    <div id="modal-confirm-delete" class="modal">
+        <div class="paper-bg rounded-3xl p-6 md:p-8 w-full max-w-sm animate-scaleIn text-center">
+            <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style="background: #ffebee;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+            </div>
+            <h3 class="font-handwrite text-2xl mb-2" style="color: var(--ink-dark);">ยืนยันการลบ</h3>
+            <p class="mb-6" style="color: var(--ink-blue);">คุณแน่ใจหรือไม่ที่จะลบข้อความนี้?</p>
+            <div class="flex gap-3">
+                <button onclick="hideModal('modal-confirm-delete')" class="btn-secondary flex-1">ยกเลิก</button>
+                <button onclick="executeDelete()" class="btn-danger flex-1">ลบเลย</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Profile -->
+    <div id="modal-profile" class="modal">
+        <div class="paper-bg notebook-border spiral-binding rounded-3xl p-6 md:p-8 w-full max-w-md animate-scaleIn">
+            <div class="pl-8">
+                <h3 class="font-handwrite text-2xl mb-6 text-center" style="color: var(--ink-dark);">โปรไฟล์ของฉัน</h3>
+                <div class="flex justify-center mb-6">
+                    <div class="profile-avatar" id="profile-avatar">?</div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block mb-2 text-sm font-medium" style="color: var(--ink-blue);">ชื่อ</label>
+                        <input type="text" id="profile-name" class="w-full p-3 rounded-lg border-2" style="border-color: var(--sky-medium); background: var(--paper); color: var(--ink-dark);">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="hideModal('modal-profile')" class="btn-secondary flex-1">ยกเลิก</button>
+                    <button onclick="saveProfile()" class="btn-primary flex-1">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Popup -->
+    <div id="score-popup" class="score-popup">
+        <div class="font-handwrite text-5xl mb-2" style="color: var(--sky-deep);" id="score-display">0/10</div>
+        <p class="mb-4" style="color: var(--ink-blue);" id="score-message">คะแนนของคุณ</p>
+        <div class="text-left mb-6">
+            <h4 class="font-handwrite text-xl mb-3" style="color: var(--ink-dark);">เฉลยคำตอบ</h4>
+            <div id="answer-review" class="max-h-64 overflow-y-auto pr-2"></div>
+        </div>
+        <button onclick="goToMain()" class="btn-primary">เริ่มเขียนบันทึก</button>
+    </div>
+
+    <script>
+        // ==================== FIREBASE CONFIG ====================
+        // ใส่ Config ของคุณที่นี่ (ถ้าไม่ใส่จะใช้โหมดทดสอบ)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // ==================== AUTO DETECT MODE ====================
+        const IS_DEMO_MODE = firebaseConfig.apiKey === "YOUR_API_KEY";
+        
+        let db = null;
+        let firebaseReady = false;
+        let entries = [];
+        let currentWriter = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let currentViewingEntryId = null;
+        let currentViewingEntryIndex = null;
+        let pendingDeleteId = null;
+
+        const STORAGE_KEY = 'anas_journal_entries';
+
+        // Initialize
+        function initSystem() {
+            if (IS_DEMO_MODE) {
+                console.log('Demo Mode: Using localStorage');
+                document.getElementById('demo-banner').classList.remove('hidden');
+                loadFromLocal();
+            } else {
+                console.log('Firebase Mode');
+                document.getElementById('demo-banner').classList.add('hidden');
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    firebaseReady = true;
+                    listenFirebase();
+                } catch (e) {
+                    console.error('Firebase Error:', e);
+                    showToast('เชื่อม Firebase ล้มเหลว ใช้โหมดทดสอบ', 'error');
+                    loadFromLocal();
+                }
+            }
+        }
+
+        function loadFromLocal() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                entries = saved ? JSON.parse(saved) : [];
+            } catch { entries = []; }
+        }
+
+        function saveToLocal() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        }
+
+        function listenFirebase() {
+            db.ref('entries').on('value', (snap) => {
+                const data = snap.val();
+                entries = data ? Object.values(data) : [];
+                entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderEntries();
+            });
+        }
+
+        // ==================== TOAST ====================
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            userAnswers = new Array(10).fill(-1);
+            generateStars();
+            initSystem();
+            checkLogin();
+        }
+
+        function checkLogin() {
+            const saved = localStorage.getItem('anas_current_user');
+            if (saved) {
+                currentWriter = saved;
+                showWelcomeBack();
+            } else {
+                showDefaultWelcome();
+            }
+        }
+
+        function showWelcomeBack() {
+            document.getElementById('welcome-default').classList.add('hidden');
+            document.getElementById('welcome-back').classList.remove('hidden');
+            document.getElementById('welcome-avatar').textContent = currentWriter.charAt(0).toUpperCase();
+            document.getElementById('welcome-back-name').textContent = currentWriter;
+        }
+
+        function showDefaultWelcome() {
+            document.getElementById('welcome-default').classList.remove('hidden');
+            document.getElementById('welcome-back').classList.add('hidden');
+        }
+
+        function goToMainDirect() {
+            updateUI();
+            showPage('page-main');
+        }
+
+        function logout() {
+            localStorage.removeItem('anas_current_user');
+            currentWriter = null;
+            userAnswers = new Array(10).fill(-1);
+            showDefaultWelcome();
+            showPage('page-welcome');
+        }
+
+        function generateStars() {
+            ['stars-container', 'stars-container-login'].forEach(id => {
+                const c = document.getElementById(id);
+                if (!c) return;
+                c.innerHTML = '';
+                for (let i = 0; i < 100; i++) {
+                    const s = document.createElement('div');
+                    s.className = 'star star-tiny';
+                    s.style.left = Math.random() * 100 + '%';
+                    s.style.top = Math.random() * 70 + '%';
+                    c.appendChild(s);
+                }
+                for (let i = 0; i < 30; i++) {
+                    const s = document.createElement('div');
+                    s.className = 'star star-small';
+                    s.style.left = Math.random() * 100 + '%';
+                    s.style.top = Math.random() * 60 + '%';
+                    s.style.animationDelay = Math.random() * 3 + 's';
+                    c.appendChild(s);
+                }
+            });
+        }
+
+        // ==================== PAGE NAV ====================
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id)?.classList.add('active');
+            if (id === 'page-main') renderEntries();
+            if (id === 'page-quiz') renderQuestion();
+        }
+
+        // ==================== LOGIN ====================
+        function processLogin() {
+            const name = document.getElementById('writer-name').value.trim();
+            if (!name) { showToast('กรุณาพิมพ์ชื่อ', 'error'); return; }
+            currentWriter = name;
+            localStorage.setItem('anas_current_user', currentWriter);
+            updateUI();
+            showPage('page-quiz-ready');
+        }
+
+        // ==================== QUIZ ====================
+        const quizQuestions = [
+            { question: "ทะเล หรือ ภูเขา?", choices: ["ทะเล", "ภูเขา", "ทั้งสองอย่าง"], answer: 2 },
+            { question: "อยู่บ้าน หรือ ออกไปเที่ยว?", choices: ["อยู่บ้าน", "ออกไปเที่ยว"], answer: 1 },
+            { question: "โกโก้, ชาไทย, หรือ ชาเขียว?", choices: ["โกโก้", "ชาไทย", "ชาเขียว"], answer: 0 },
+            { question: "ชาบู หรือ ปิ้งย่าง?", choices: ["ชาบู", "ปิ้งย่าง"], answer: 0 },
+            { question: "กินผัก หรือ แพ้ผัก?", choices: ["กินผัก", "แพ้ผัก"], answer: 1 },
+            { question: "ENFP หรือ ENFJ?", choices: ["ENFP", "ENFJ"], answer: 1 },
+            { question: "ดอกกุหลาบ หรือ ดอกทานตะวัน?", choices: ["ดอกกุหลาบ", "ดอกทานตะวัน"], answer: 1 },
+            { question: "ตีแบด หรือ เล่นบาส?", choices: ["ตีแบด", "เล่นบาส"], answer: 0 },
+            { question: "การกระทำ หรือ คำพูด?", choices: ["การกระทำ", "คำพูด"], answer: 0 },
+            { question: "กลางวัน หรือ กลางคืน?", choices: ["กลางวัน", "กลางคืน"], answer: 1 }
+        ];
+
+        function renderQuestion() {
+            const q = quizQuestions[currentQuestionIndex];
+            document.getElementById('question-text').textContent = q.question;
+            document.getElementById('quiz-progress').textContent = `ข้อ ${currentQuestionIndex + 1}/10`;
+            document.getElementById('progress-bar').style.width = `${(currentQuestionIndex + 1) * 10}%`;
+            
+            const c = document.getElementById('choices-container');
+            c.innerHTML = '';
+            q.choices.forEach((ch, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn font-handwrite text-lg' + (userAnswers[currentQuestionIndex] === i ? ' selected' : '');
+                btn.textContent = ch;
+                btn.onclick = () => { userAnswers[currentQuestionIndex] = i; renderQuestion(); };
+                c.appendChild(btn);
+            });
+            
+            document.getElementById('btn-prev').style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+            document.getElementById('btn-next').style.display = currentQuestionIndex < 9 ? 'inline-block' : 'none';
+            document.getElementById('btn-finish').style.display = currentQuestionIndex === 9 ? 'inline-block' : 'none';
+        }
+
+        function nextQuestion() { if (currentQuestionIndex < 9) { currentQuestionIndex++; renderQuestion(); } }
+        function prevQuestion() { if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); } }
+
+        function finishQuiz() {
+            let sc = 0;
+            userAnswers.forEach((a, i) => { if (a === quizQuestions[i].answer) sc++; });
+            
+            document.getElementById('score-display').textContent = `${sc}/10`;
+            document.getElementById('score-message').textContent = sc >= 8 ? 'เก่งมาก!' : sc >= 5 ? 'ไม่เลวนะ!' : 'ลองใหม่นะ!';
+            
+            const rev = document.getElementById('answer-review');
+            rev.innerHTML = '';
+            quizQuestions.forEach((q, i) => {
+                const ua = userAnswers[i];
+                const correct = q.answer;
+                const isOk = ua === correct;
+                const item = document.createElement('div');
+                item.className = 'answer-item ' + (isOk ? 'answer-correct' : 'answer-wrong');
+                item.innerHTML = `
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium">ข้อ ${i+1}: ${q.question}</span>
+                        <span class="correct-badge ${isOk ? 'badge-correct' : 'badge-wrong'}">${isOk ? 'ถูก' : 'ผิด'}</span>
+                    </div>
+                    <div class="text-sm">
+                        <div>คุณตอบ: ${ua >= 0 ? q.choices[ua] : 'ไม่ได้ตอบ'}</div>
+                        ${!isOk ? `<div style="color: var(--correct-green);">ถูกต้อง: ${q.choices[correct]}</div>` : ''}
+                    </div>
+                `;
+                rev.appendChild(item);
+            });
+            
+            document.getElementById('score-popup').classList.add('active');
+        }
+
+        function skipQuiz() { showPage('page-main'); }
+        function goToMain() { document.getElementById('score-popup').classList.remove('active'); showPage('page-main'); }
+
+        // ==================== ENTRIES ====================
+        function renderEntries() {
+            const c = document.getElementById('entries-list');
+            c.innerHTML = '';
+            
+            if (entries.length === 0) {
+                c.innerHTML = `<div class="text-center py-12" style="color: var(--ink-blue); opacity: 0.6;">
+                    <p class="font-handwrite text-xl">ยังไม่มีบันทึก</p>
+                    <p class="text-sm mt-2">เป็นคนแรกที่เขียน!</p>
+                </div>`;
+                return;
+            }
+            
+            entries.forEach((e, idx) => {
+                const isOwner = currentWriter && e.writer && e.writer.toLowerCase() === currentWriter.toLowerCase();
+                const card = document.createElement('div');
+                card.className = 'entry-card p-5 flex items-center gap-4 relative' + (isOwner ? ' own-entry' : '');
+                
+                card.innerHTML = `
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style="background: linear-gradient(135deg, var(--sky-medium), var(--sky-deep));">
+                        ${(e.writer || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-handwrite text-lg" style="color: var(--ink-dark);">${e.writer || 'ไม่ทราบชื่อ'}</p>
+                        <p class="text-sm" style="color: var(--ink-blue); opacity: 0.6;">${formatDate(e.date)}</p>
+                    </div>
+                    ${isOwner ? `
+                        <button onclick="event.stopPropagation(); quickDelete('${e.id}')" class="delete-entry-btn p-2 rounded-full hover:bg-red-50" style="color: #c62828;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sky-deep)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    ` : `
+                        <div class="text-xs px-3 py-1 rounded-full" style="background: var(--sky-light); color: var(--ink-blue);">ส่วนตัว</div>
+                    `}
+                `;
+                
+                if (isOwner) card.onclick = () => viewEntry(idx);
+                c.appendChild(card);
+            });
+        }
+
+        function showModal(id) {
+            document.getElementById(id)?.classList.add('active');
+            if (id === 'modal-profile') {
+                document.getElementById('profile-name').value = currentWriter || '';
+                document.getElementById('profile-avatar').textContent = (currentWriter || '?').charAt(0).toUpperCase();
+            }
+        }
+
+        function hideModal(id) {
+            document.getElementById(id)?.classList.remove('active');
+            if (id === 'modal-write') {
+                document.getElementById('entry-content').value = '';
+                document.getElementById('entry-image').value = '';
+                document.getElementById('image-preview').classList.add('hidden');
+            }
+        }
+
+        function saveEntry() {
+            if (!currentWriter) { showToast('กรุณาเข้าสู่ระบบ', 'error'); return; }
+            
+            const content = document.getElementById('entry-content').value.trim();
+            const imgFile = document.getElementById('entry-image').files?.[0];
+            
+            if (!content && !imgFile) { showToast('กรุณาเขียนข้อความ', 'error'); return; }
+            
+            const entry = {
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                writer: currentWriter,
+                content: content,
+                image: null,
+                date: new Date().toISOString()
+            };
+            
+            if (imgFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    entry.image = e.target.result;
+                    performSave(entry);
+                };
+                reader.readAsDataURL(imgFile);
+            } else {
+                performSave(entry);
+            }
+        }
+
+        function performSave(entry) {
+            if (IS_DEMO_MODE || !firebaseReady) {
+                // Save to localStorage
+                entries.unshift(entry);
+                saveToLocal();
+                showToast('บันทึกสำเร็จ! (โหมดทดสอบ)');
+                hideModal('modal-write');
+                renderEntries();
+            } else {
+                // Save to Firebase
+                db.ref('entries/' + entry.id).set(entry)
+                    .then(() => {
+                        showToast('บันทึกสำเร็จ!');
+                        hideModal('modal-write');
+                    })
+                    .catch((e) => {
+                        console.error(e);
+                        showToast('บันทึกล้มเหลว: ' + e.message, 'error');
+                    });
+            }
+        }
+
+        function viewEntry(idx) {
+            const e = entries[idx];
+            if (!e) return;
+            currentViewingEntryId = e.id;
+            currentViewingEntryIndex = idx;
+            
+            document.getElementById('view-avatar').textContent = (e.writer || '?').charAt(0).toUpperCase();
+            document.getElementById('view-name').textContent = e.writer || 'ไม่ทราบชื่อ';
+            document.getElementById('view-content').textContent = e.content || '(ไม่มีข้อความ)';
+            document.getElementById('view-date').textContent = 'วันที่: ' + formatDate(e.date);
+            
+            if (e.image) {
+                document.getElementById('view-image').src = e.image;
+                document.getElementById('view-image-container').classList.remove('hidden');
+            } else {
+                document.getElementById('view-image-container').classList.add('hidden');
+            }
+            
+            showModal('modal-view');
+        }
+
+        function editEntry() {
+            const e = entries[currentViewingEntryIndex];
+            if (!e) return;
+            hideModal('modal-view');
+            document.getElementById('entry-content').value = e.content || '';
+            showModal('modal-write');
+            performDelete(e.id);
+        }
+
+        function confirmDeleteEntry() {
+            pendingDeleteId = currentViewingEntryId;
+            hideModal('modal-view');
+            showModal('modal-confirm-delete');
+        }
+
+        function quickDelete(id) {
+            pendingDeleteId = id;
+            showModal('modal-confirm-delete');
+        }
+
+        function executeDelete() {
+            if (pendingDeleteId) {
+                performDelete(pendingDeleteId);
+                pendingDeleteId = null;
+            }
+            hideModal('modal-confirm-delete');
+        }
+
+        function performDelete(id) {
+            if (IS_DEMO_MODE || !firebaseReady) {
+                entries = entries.filter(e => e.id !== id);
+                saveToLocal();
+                renderEntries();
+                showToast('ลบสำเร็จ');
+            } else {
+                db.ref('entries/' + id).remove()
+                    .then(() => showToast('ลบสำเร็จ'))
+                    .catch((e) => showToast('ลบล้มเหลว', 'error'));
+            }
+        }
+
+        function clearImage() {
+            document.getElementById('entry-image').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        }
+
+        document.getElementById('entry-image')?.addEventListener('change', function(e) {
+            const file = e.target.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('preview-img').src = ev.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ==================== PROFILE ====================
+        function saveProfile() {
+            const name = document.getElementById('profile-name').value.trim();
+            if (!name) { showToast('กรุณากรอกชื่อ', 'error'); return; }
+            
+            const oldName = currentWriter;
+            currentWriter = name;
+            localStorage.setItem('anas_current_user', name);
+            
+            // Update entries
+            entries.forEach(e => {
+                if (e.writer?.toLowerCase() === oldName.toLowerCase()) {
+                    e.writer = name;
+                    if (!IS_DEMO_MODE && firebaseReady) {
+                        db.ref('entries/' + e.id + '/writer').set(name);
+                    }
+                }
+            });
+            
+            if (IS_DEMO_MODE) saveToLocal();
+            
+            updateUI();
+            hideModal('modal-profile');
+            showToast('บันทึกโปรไฟล์สำเร็จ');
+        }
+
+        // ==================== UI ====================
+        function updateUI() {
+            const n = currentWriter || 'ผู้เขียน';
+            document.getElementById('ready-name').textContent = n;
+            document.getElementById('ready-avatar').textContent = n.charAt(0).toUpperCase();
+            document.getElementById('header-name').textContent = n;
+            document.getElementById('header-avatar').textContent = n.charAt(0).toUpperCase();
+        }
+
+        function formatDate(d) {
+            if (!d) return '';
+            try {
+                return new Date(d).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            } catch { return d; }
+        }
+
+        // ==================== START ====================
+        init();
+    </script>
+</body>
+</html>
